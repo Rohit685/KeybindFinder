@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IniReader", "IniReader.csproj", "{E8B641EF-6C73-435D-8FDA-9241910E070D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeybindFinder", "KeybindFinder.csproj", "{E8B641EF-6C73-435D-8FDA-9241910E070D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
