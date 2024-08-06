@@ -29,41 +29,106 @@ namespace KeybindFinder
     
     internal class Program
     {
+        
         public static void Main(string[] args)
         {
             string currentDirectory = Directory.GetCurrentDirectory();
-            string plugins_path = $"{currentDirectory}/Plugins";
-            string lspdfr_plugins_path = $"{currentDirectory}/Plugins/LSPDFR";
-            
-            if (!Directory.Exists(plugins_path) | !Directory.Exists(lspdfr_plugins_path))
+            // string plugins_path = $"{currentDirectory}/Plugins";
+            // string lspdfr_plugins_path = $"{currentDirectory}/Plugins/LSPDFR";
+            //
+            // if (!Directory.Exists(plugins_path) | !Directory.Exists(lspdfr_plugins_path))
+            // {
+            //     WriteLineInColor("This exe is not in the main game directory.", ConsoleColor.DarkRed);
+            //     while (true)
+            //     {
+            //         Thread.Sleep(0);
+            //     }
+            // }
+            Dictionary<string, string> modifiers = new Dictionary<string, string>
             {
-                WriteLineInColor("This exe is not in the main game directory.", ConsoleColor.DarkRed);
-                while (true)
-                {
-                    Thread.Sleep(0);
-                }
-            }
+                { "Left Shift", "LShiftKey" },
+                { "Right Shift", "RShiftKey" },
+                { "Left Control", "LControlKey" },
+                { "Right Control", "RControlKey" },
+                { "Left Alt", "LMenu" },
+                { "Right Alt", "RMenu" },
+            };
+
+            Dictionary<string, string> weirdKeys = new Dictionary<string, string>()
+            {
+                { "Backspace", "Back" },
+                { "UpArrow", "Up" },
+                { "DownArrow", "Down" },
+                { "LeftArrow", "Left" },
+                { "RightArrow", "Right" },
+                { "Spacebar", "Space" },
+                {"OemComma", "Oemcomma" },
+                {"OemPlus", "Oemplus" },
+                {"OemTilde", "Oemtilde"}
+            };
             SearchFiles(currentDirectory);
+            Console.WriteLine("----------");
             while (true)
             {
-                Console.WriteLine("Type in any keybind to see matching keybinds. It has to match what you would write in the ini. Type in combo(all lowercase) if you want to see which mod uses a combination of letters. quit to exit.");
+                Console.WriteLine("Type in any keybind to see matching keybinds. It has to match what you would write in the ini.\n" +
+                                  $"Type in {BoldText("lookup")} if you need to figure out what a key should be typed out as.\n" +
+                                  $"Type in {BoldText("modifiers")} to see modifier keys.\n" +
+                                  $"Type in {BoldText("quit")} to exit.");
+                Console.WriteLine("----------");
                 var input = Console.ReadLine();
                 Console.WriteLine("----------");
                 if (input.ToLower().Equals("quit"))
                 {
                     return;
-                }
-                
-                (bool, int) ck = CheckKeys(input);
-                (bool, int) cck = CheckControllerKeys(input);
-                if (!ck.Item1 && !cck.Item1)
+                } 
+                else if(input.ToLower().Equals("modifiers"))
                 {
-                    InvalidLog();
-                    continue;
+                    foreach(KeyValuePair<string, string> kvp in modifiers)
+                    {
+                        Console.WriteLine($"{kvp.Key} -> {kvp.Value}");
+                    }
                 }
-                if (ck.Item2 == 0 && cck.Item2 == 0)
+                else if (input.ToLower().Equals("lookup"))
                 {
-                    WriteLineInColor($"No keys found for {input}", ConsoleColor.DarkGreen);
+                    Console.WriteLine(
+                        $"Whenever you type in a key, it will show you the proper way of typing in that keybind. This also helps when looking for your keybinds.");
+                    WriteLineInColor($"Controller keybinds do not work. Modifier keys do not work as expected either. \nIf there are keys that do not print out correctly, please let me know.", ConsoleColor.DarkRed);
+                    Console.WriteLine($"To see how to input modifier keys, Use the {BoldText("modifiers")} command instead.");
+                    WriteLineInColor($"Press {BoldText("escape")} to exit this mode.", ConsoleColor.DarkYellow);
+                    ConsoleKeyInfo key;
+                    while(true)
+                    {
+                        key = Console.ReadKey(intercept:true);
+                        if((key.Modifiers & ConsoleModifiers.Alt) != 0) Console.Write("ALT + ");
+                        if((key.Modifiers & ConsoleModifiers.Shift) != 0) Console.Write("SHIFT + ");
+                        if((key.Modifiers & ConsoleModifiers.Control) != 0) Console.Write("CTL + ");
+                        if(key.Key.ToString().ToLower().Equals("escape")) break;
+                        if (weirdKeys.TryGetValue(key.Key.ToString(), out string val))
+                        {
+                            Console.WriteLine($"{val}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{key.Key.ToString()}");
+                        }
+                    }
+                }
+                else
+                {
+
+                    (bool, int) ck = CheckKeys(input);
+                    (bool, int) cck = CheckControllerKeys(input);
+                    if (!ck.Item1 && !cck.Item1)
+                    {
+                        InvalidLog();
+                        continue;
+                    }
+
+                    if (ck.Item2 == 0 && cck.Item2 == 0)
+                    {
+                        WriteLineInColor($"No keys found for {input}", ConsoleColor.DarkGreen);
+                    }
+
                 }
                 Console.WriteLine("----------");
             }
@@ -73,6 +138,11 @@ namespace KeybindFinder
         {
             WriteLineInColor("Invalid keybind", ConsoleColor.DarkRed);
             Console.WriteLine("----------");
+        }
+
+        static string BoldText(string text)
+        {
+            return $"\x1b[3m{text}\x1b[0m";
         }
 
         private static (bool, int) CheckControllerKeys(string input)
